@@ -1,12 +1,12 @@
+// context/authContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { firebaseConfig } from '../config/firebaseConfig'; // Changed to use firebaseConfig from separate config file
 import { initializeApp } from 'firebase/app';
+import { firebaseConfig } from '../config/firebaseConfig';
 
-const firebaseApp = initializeApp(firebaseConfig); // Initialize Firebase app with config
+const firebaseApp = initializeApp(firebaseConfig);
 
-// Define the shape of the context data for authentication
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -15,19 +15,16 @@ interface AuthContextType {
   setUserRole: (role: string | null) => void;
 }
 
-// Create a Context with an undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom hook for easy Context consumption
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-// Provider Component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,18 +73,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error observing auth state:', error);
         setLoading(false);
       });
-      // Clean up subscription on unmount
       return () => unsubscribe();
     }
   }, []);
 
-  // Render nothing while in loading state to prevent SSR hydration issues
   if (loading) return null;
 
-  // Provide auth context to application
   return (
     <AuthContext.Provider value={{ user, loading, userRole, setUser, setUserRole }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext };
